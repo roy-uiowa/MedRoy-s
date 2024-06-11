@@ -30,7 +30,8 @@
     "react-native-video": "^6.2.0",
     "react-native-web": "~0.19.6",
     "shaka-player": "^4.9.3",
-    "typescript": "~5.3.3"
+    "typescript": "~5.3.3",
+    "expo-av": "~14.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

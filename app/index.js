@@ -1,9 +1,6 @@
 //meditation bowl: https://www.youtube.com/watch?v=eNmjWjpxUOM
-import TrackPlayer from 'react-native-track-player';
-import { playbackService, setupPlayer, addTracks } from './musicPlayerServices';
 import React, { useState, useRef, useEffect } from 'react';
-// import Video from 'react-native-video'
-// import Video, {VideoRef} from 'react-native-video'
+import {Audio} from 'expo-av'
 import SwitchSelector from "react-native-switch-selector";
 import CircularProgress, { ProgressRef } from 'react-native-circular-progress-indicator';
 import { 
@@ -16,11 +13,7 @@ import {
     ActivityIndicator,
     Button} from 'react-native';
 import icons from '../constants/icons';
-import { AppRegistry } from 'react-native';
 import { meditationTracks } from '../constants/tracks';
-
-// AppRegistry.registerComponent()
-TrackPlayer.registerPlaybackService(()=>playbackService)
 
 
 const options = [
@@ -31,27 +24,32 @@ const options = [
 const App = () => {
     const [meditationTime, setMeditationTime] = useState(3)
     const [meditationEnv, setMeditationEnv] = useState('rain')
-    const [isPlayerReady, setIsPlayerReady] = useState(false)
+    const [sound, setSound] = useState()
     const progressRef = useRef();
 
+    async function playTrack(){
+        console.log('Loading sound');
+        const {sound} = await Audio.Sound.createAsync(meditationTracks[meditationEnv])
+        setSound(sound)
+        console.log('playing sound');
+        await sound.playAsync();
+    }
     useEffect(() => {
-        async function setup() {
-            let isSetup = await setupPlayer();
-            const queue = await TrackPlayer.getQueue();
-            if (isSetup && queue.length <= 0) {
-                await addTracks(meditationTracks);
+        Audio.setAudioModeAsync({
+            staysActiveInBackground: true,
+            playsInSilentModeIOS: true,
+            interruptionModeIOS: InterruptionModeIOS.DuckOthers,
+            interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+            shouldDuckAndroid: true,
+            playThroughEarpieceAndroid: true,
+        });
+        return sound
+            ? () => {
+                console.log('unloading sound');
+                sound.unloadAsync();
             }
-            setIsPlayerReady(isSetup)
-        }
-        setup();
-    }, []);
-    if(!isPlayerReady) {
-        return (
-          <View style={styles.container}>
-            <ActivityIndicator size="large" color="#bbb"/>
-          </View>
-        );
-      }
+            : undefined;
+        }, [sound]);
     return(
         <View>
             <View>
@@ -128,13 +126,6 @@ const App = () => {
 export default App;
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        padding: 20,
-        backgroundColor: '#112'
-      },
-
     switchContainer:{
         margin: 10,
     },
